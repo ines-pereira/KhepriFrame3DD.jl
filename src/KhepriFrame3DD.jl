@@ -1,14 +1,14 @@
 module KhepriFrame3DD
 using KhepriBase
-using Sockets
 
 # functions that need specialization
 include(khepribase_interface_file())
 
 include("Frame3DD.jl")
-#=
+
 function __init__()
-  set_backend_family(default_wall_family(), autocad, acad_layer_family("Wall"))
+
+#=  set_backend_family(default_wall_family(), autocad, acad_layer_family("Wall"))
   set_backend_family(default_slab_family(), autocad, acad_layer_family("Slab"))
   set_backend_family(default_roof_family(), autocad, acad_layer_family("Roof"))
   set_backend_family(default_beam_family(), autocad, acad_layer_family("Beam"))
@@ -25,12 +25,19 @@ function __init__()
   set_backend_family(default_curtain_wall_family().boundary_frame, autocad, acad_layer_family("CurtainWall-Boundary"))
   set_backend_family(default_curtain_wall_family().transom_frame, autocad, acad_layer_family("CurtainWall-Transom"))
   set_backend_family(default_curtain_wall_family().mullion_frame, autocad, acad_layer_family("CurtainWall-Mullion"))
-  set_backend_family(default_truss_node_family(), autocad, acad_layer_family("TrussNode"))
-  set_backend_family(default_truss_bar_family(), autocad, acad_layer_family("TrussBar"))
+  =#
+  set_backend_family(default_truss_bar_family(),
+     frame3dd,
+     frame3DD_circular_tube_truss_bar_family(0.0213/2, 0.0213/2-0.0026,
+       E=210000000000.0, # (Young's modulus)
+       G=81000000000.0, # (Kirchoff's or Shear modulus)
+       p=0.0, # Roll angle
+       d=77010.0)) # Density
 
-  set_backend_family(fixed_truss_node_family, autocad, acad_layer_family("FixedTrussNode"))
-  set_backend_family(free_truss_node_family, autocad, acad_layer_family("FreeTrussNode"))
+#  set_backend_family(default_truss_node_family(), frame3dd, acad_layer_family("TrussNode"))
+#  set_backend_family(fixed_truss_node_family, frame3dd, acad_layer_family("FixedTrussNode"))
+#  set_backend_family(free_truss_node_family, frame3dd, acad_layer_family("FreeTrussNode"))
   #use_family_in_layer(b::ACAD) = true
 end
-=#
+
 end
