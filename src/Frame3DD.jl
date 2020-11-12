@@ -227,5 +227,5 @@ backend_truss_analysis(b::FR3DD, load::Vec) =
           for line in lines[idx1:idx2-1]])
   end
 
-node_displacement_function(b::FR3DD, results) =
+backend_node_displacement_function(b::FR3DD, results) =
   n -> get(results, n.id, vx(0))
