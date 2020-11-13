@@ -26,6 +26,8 @@ void_ref(b::FR3DD) = FR3DDNativeRef(-1)
 
 const frame3dd = FR3DD()
 
+backend_name(b::FR3DD) = "Frame3DD"
+
 # Frame3DD needs to merge nodes and bars
 save_shape!(b::FR3DD, s::TrussNode) = maybe_merged_node(b, s)
 save_shape!(b::FR3DD, s::TrussBar) = maybe_merged_bar(b, s)
@@ -97,7 +99,7 @@ frame3DD_circular_tube_truss_bar_family(rₒ, rᵢ; E, G, p, d) =
 =#
 
 #
-delete_all_shapes(b::FR3DD) =
+backend_delete_all_shapes(b::FR3DD) =
   begin
     empty!(b.truss_nodes)
     empty!(b.truss_bars)
@@ -192,7 +194,7 @@ displacements_from_frame3dd(b::FR3DD, filename, load) =
     end
   end
 
-frame3dd_plugin = joinpath(dirname(dirname(abspath(@__FILE__))), "Plugins", "Frame3DD", "frame3dd.exe")
+frame3dd_plugin = joinpath(dirname(dirname(abspath(@__FILE__))), "bin", "frame3dd.exe")
 
 frame3dd_simulation_path() =
   mktempdir(tempdir(), prefix="Frame3DD_")
@@ -225,5 +227,5 @@ backend_truss_analysis(b::FR3DD, load::Vec) =
           for line in lines[idx1:idx2-1]])
   end
 
-node_displacement_function(b::FR3DD, results) =
+backend_node_displacement_function(b::FR3DD, results) =
   n -> get(results, n.id, vx(0))
