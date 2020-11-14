@@ -28,16 +28,11 @@ function __init__()
   =#
   set_backend_family(default_truss_bar_family(),
      frame3dd,
-     frame3DD_circular_tube_truss_bar_family(0.0213/2, 0.0213/2-0.0026,
+     frame3dd_truss_bar_family(
        E=210000000000.0, # (Young's modulus)
        G=81000000000.0, # (Kirchoff's or Shear modulus)
        p=0.0, # Roll angle
        d=77010.0)) # Density
-
-#  set_backend_family(default_truss_node_family(), frame3dd, acad_layer_family("TrussNode"))
-#  set_backend_family(fixed_truss_node_family, frame3dd, acad_layer_family("FixedTrussNode"))
-#  set_backend_family(free_truss_node_family, frame3dd, acad_layer_family("FreeTrussNode"))
-  #use_family_in_layer(b::ACAD) = true
 end
 
 end

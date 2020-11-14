@@ -38,20 +38,28 @@ with_family_in_layer(f::Function, backend::FR3DD, family::Family) = f()
 # Frame3DD Families
 abstract type Frame3DDFamily <: BackendFamily{Any} end
 
-Base.@kwdef struct Frame3DDTrussBarFamily <: Frame3DDFamily
+Base.@kwdef struct Frame3DDTrussBarGeometry
   Ax  # cross section area
   Asy # shear area y-direction
   Asz # shear area z-direction
   Jxx # torsional moment of inertia - x axis
   Iyy # bending moment of inertia - y axis
   Izz # bending moment of inertia - z axis
+end
+
+Base.@kwdef struct Frame3DDTrussBarFamily <: Frame3DDFamily
+  geometry=Ref{Any}(nothing) # properties that only depend on radius and thickness
   E   # elastic modulus
-  G   # shear   modulus
+  G   # shear modulus
   p   # roll angle
   d   # mass density
 end
 
-truss_bar_family_cross_section_area(f::Frame3DDTrussBarFamily) = f.Ax
+export frame3dd_truss_bar_family
+frame3dd_truss_bar_family = Frame3DDTrussBarFamily
+
+truss_bar_family_cross_section_area(f::Frame3DDTrussBarFamily) =
+  f.geometry[].Ax
 
 #=
 Circular Tube (outer radius= Ro, inner radius = Ri):
@@ -62,22 +70,27 @@ Jxx = (1/2) π ( Ro4 - Ri4 )
 Ixx = Iyy = (1/4) π ( Ro4 - Ri4 )
 =#
 
-frame3DD_circular_tube_truss_bar_family(rₒ, rᵢ; E, G, p, d) =
-  let Ax = annulus_area(rₒ, rᵢ),
+#=
+outer radius, thickness;
+E   # elastic modulus
+G   # shear   modulus
+p   # roll angle
+d   # mass density
+=#
+export frame3DD_circular_tube_truss_bar_geometry
+frame3dd_circular_tube_truss_bar_geometry(rₒ, e) =
+  let rᵢ = rₒ - e,
+      Ax = annulus_area(rₒ, rᵢ),
       Asyz = Ax/(0.54414 + 2.97294*(rᵢ/rₒ) - 1.51899*(rᵢ/rₒ)^2),
       Jxx = π/2*(rₒ^4 - rᵢ^4),
       Ixxyy = Jxx/2
-    Frame3DDTrussBarFamily(
-      Ax  =Ax,
-      Asy =Asyz,
-      Asz =Asyz,
-      Jxx =Jxx,
-      Iyy =Ixxyy,
-      Izz =Ixxyy,
-      E   =E,
-      G   =G,
-      p   =p,
-      d   =d)
+    Frame3DDTrussBarGeometry(
+      Ax =Ax,
+      Asy=Asyz,
+      Asz=Asyz,
+      Jxx=Jxx,
+      Iyy=Ixxyy,
+      Izz=Ixxyy)
  end
 
 #=
@@ -97,6 +110,12 @@ frame3DD_circular_tube_truss_bar_family(rₒ, rᵢ; E, G, p, d) =
  @iyy = "0.0702E+06"            # Iyy (mm^4)
  @izz = "0.0237E+06"            # Izz (mm^4)
 =#
+
+backend_get_family_ref(b::FR3DD, f::TrussBarFamily, tbf::Frame3DDTrussBarFamily) =
+  begin
+    tbf.geometry[] = frame3dd_circular_tube_truss_bar_geometry(f.radius, f.radius-f.inner_radius)
+    tbf
+  end
 
 #
 backend_delete_all_shapes(b::FR3DD) =
@@ -159,9 +178,10 @@ displacements_from_frame3dd(b::FR3DD, filename, load) =
       println(io, "%% m\tn1\tn2\t\tAx\t\tAsy\t\tAsz\t\tJxx\t\tIyy\t\tIzz\t\tE\t\tG\t\tp\tdensity");
       for bar in bars
         f = family_ref(b, bar.family)
+        g = f.geometry[]
         print(io, "$(bar.id),\t$(bar.node1.id),\t$(bar.node2.id),")
-        print(io, "\t$(f.Ax),\t$(f.Asy),\t$(f.Asz),")
-        print(io, "\t$(f.Jxx),\t$(f.Iyy),\t$(f.Izz),")
+        print(io, "\t$(g.Ax),\t$(g.Asy),\t$(g.Asz),")
+        print(io, "\t$(g.Jxx),\t$(g.Iyy),\t$(g.Izz),")
         println(io, "\t$(f.E),\t$(f.G),\t$(f.p),\t$(f.d)")
       end
       println(io, "\n");
