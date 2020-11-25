@@ -29,10 +29,12 @@ function __init__()
   set_backend_family(default_truss_bar_family(),
      frame3dd,
      frame3dd_truss_bar_family(
-       E=210000000000.0, # (Young's modulus)
-       G=81000000000.0, # (Kirchoff's or Shear modulus)
-       p=0.0, # Roll angle
-       d=77010.0)) # Density
+       E=210e09,         # E (Young's modulus)
+       G=81e09,          # G (Kirchoff's or Shear modulus)
+       p=0.0,            # Roll angle
+       d=7.701e3))       # RO (Density)
+
+  add_current_backend(frame3dd)
 end
 
 end
