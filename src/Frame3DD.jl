@@ -247,12 +247,15 @@ backend_node_displacement_function(b::FR3DD, results) =
 
 =#
 
-#
+#=
 using Libdl
 f3ddlib = dlopen(joinpath(dirname(abspath(@__DIR__)), "bin", "Frame3DDLib"))
 f3ddmain = dlsym(f3ddlib, :simulate)
+=#
 
 #dlclose(f3ddlib)
+
+const f3ddlibpath=joinpath(dirname(abspath(@__DIR__)), "bin", "Frame3DDLib")
 ##########################################
 backend_truss_analysis(be::FR3DD, load::Vec, self_weight::Bool) =
     let nodes = process_nodes(be.truss_nodes, load),
@@ -347,49 +350,82 @@ backend_truss_analysis(be::FR3DD, load::Vec, self_weight::Bool) =
       nFs = Int32[0, nF]
       F_mechs = [Ref(F_mech, 1), Ref(F_mech, 1)]
       D = zeros(DoF+1)	  # displacements of each node
-      ccall(f3ddmain, Int32, (
-            Int32,        # number of Nodes
-            Int32,        # number of frame Elements
-            Ref{Float64}, # X,Y,Z node coordinates (global)
-            Ref{Float32}, # node size radius, for finite sizes
-            Int32,        # number of restrained nodes
-            Ref{Int32},   # reaction data
-            Ref{Int32},   # reaction data
-            Int32,        # total no. of reactions
-            Ref{Float64},	# length of each element
-            Ref{Float64},	# effective length of each element
-            Ref{Int32},   # node #1 of each element
-            Ref{Int32},   # N2,    // node #2 of each element
-            Ref{Float32},	# cross section area of each element
-            Ref{Float32},	# shear area in local y direction 	*/
-            Ref{Float32},	# shear area in local z direction	*/
-            Ref{Float32},	# torsional moment of inertia 		*/
-            Ref{Float32},	# bending moment of inertia about y-axis */
-            Ref{Float32},	# bending moment of inertia about z-axis */
-            Ref{Float32},	# frame element Young's modulus	*/
-            Ref{Float32},	# frame element shear modulus		*/
-            Ref{Float32},	# element rotation angle about local x axis */
-            Ref{Float32},	# element mass density			*/
-            Int32,        # number of Load cases
-            Int32,        # number of Load cases
-            Ref{Float32}, # gravitational acceleration in global X
-            Ref{Float32}, # gravitational acceleration in global Y
-            Ref{Float32}, # gravitational acceleration in global Z
-            Ref{Int32},   # number of loaded nodes
-            Ref{Ptr{Float64}},  # mechanical load vectors, all load cases
-            # RESULTS
-            Ref{Float64}  # displacements of each node
-            ),
-        nN, nE,
-        nodes_coords, nodes_radius,
-        nR, q, r, sumR,
-        L, Le, N1, N2, Ax, Asy, Asz, Jx, Iy, Iz, E, G, p, d,
-        1, 0,
-        gX, gY, gZ,
-        nFs,
-        F_mechs,
-        # RESULTS
-        D)
+      #ccall(f3ddmain, Int32, (
+      #      Int32,        # number of Nodes
+      #      Int32,        # number of frame Elements
+      #      Ref{Float64}, # X,Y,Z node coordinates (global)
+      #      Ref{Float32}, # node size radius, for finite sizes
+      #      Int32,        # number of restrained nodes
+      #      Ref{Int32},   # reaction data
+      #      Ref{Int32},   # reaction data
+      #      Int32,        # total no. of reactions
+      #      Ref{Float64},	# length of each element
+      #      Ref{Float64},	# effective length of each element
+      #      Ref{Int32},   # node #1 of each element
+      #      Ref{Int32},   # N2,    // node #2 of each element
+      #      Ref{Float32},	# cross section area of each element
+      #      Ref{Float32},	# shear area in local y direction 	*/
+      #      Ref{Float32},	# shear area in local z direction	*/
+      #      Ref{Float32},	# torsional moment of inertia 		*/
+      #      Ref{Float32},	# bending moment of inertia about y-axis */
+      #      Ref{Float32},	# bending moment of inertia about z-axis */
+      #      Ref{Float32},	# frame element Young's modulus	*/
+      #      Ref{Float32},	# frame element shear modulus		*/
+      #      Ref{Float32},	# element rotation angle about local x axis */
+      #      Ref{Float32},	# element mass density			*/
+      #      Int32,        # number of Load cases
+      #      Int32,        # number of Load cases
+      #      Ref{Float32}, # gravitational acceleration in global X
+      #      Ref{Float32}, # gravitational acceleration in global Y
+      #      Ref{Float32}, # gravitational acceleration in global Z
+      #      Ref{Int32},   # number of loaded nodes
+      #      Ref{Ptr{Float64}},  # mechanical load vectors, all load cases
+      #      # RESULTS
+      #      Ref{Float64}  # displacements of each node
+      #      ),
+      #  nN, nE,
+      #  nodes_coords, nodes_radius,
+      #  nR, q, r, sumR,
+      #  L, Le, N1, N2, Ax, Asy, Asz, Jx, Iy, Iz, E, G, p, d,
+      #  1, 0,
+      #  gX, gY, gZ,
+      #  nFs,
+      #  F_mechs,
+      #  # RESULTS
+      #  D)
+      @ccall f3ddlibpath.simulate(
+         nN::Int32,        # number of Nodes
+         nE::Int32,        # number of frame Elements
+         nodes_coords::Ref{Float64}, # X,Y,Z node coordinates (global)
+         nodes_radius::Ref{Float32}, # node size radius, for finite sizes
+         nR::Int32,        # number of restrained nodes
+         q::Ref{Int32},   # reaction data
+         r::Ref{Int32},   # reaction data
+         sumR::Int32,        # total no. of reactions
+         L::Ref{Float64},	# length of each element
+         Le::Ref{Float64},	# effective length of each element
+         N1::Ref{Int32},   # node #1 of each element
+         N2::Ref{Int32},   # node #2 of each element
+         Ax::Ref{Float32},	# cross section area of each element
+         Asy::Ref{Float32},	# shear area in local y direction 	*/
+         Asz::Ref{Float32},	# shear area in local z direction	*/
+         Jx::Ref{Float32},	# torsional moment of inertia 		*/
+         Iy::Ref{Float32},	# bending moment of inertia about y-axis */
+         Iz::Ref{Float32},	# bending moment of inertia about z-axis */
+         E::Ref{Float32},	# frame element Young's modulus	*/
+         G::Ref{Float32},	# frame element shear modulus		*/
+         p::Ref{Float32},	# element rotation angle about local x axis */
+         d::Ref{Float32},	# element mass density			*/
+         1::Int32,        # number of Load cases
+         0::Int32,        # number of Load cases
+         gX::Ref{Float32}, # gravitational acceleration in global X
+         gY::Ref{Float32}, # gravitational acceleration in global Y
+         gZ::Ref{Float32}, # gravitational acceleration in global Z
+         nFs::Ref{Int32},   # number of loaded nodes
+         F_mechs::Ref{Ptr{Float64}},  # mechanical load vectors, all load cases
+         # RESULTS
+         D::Ref{Float64}  # displacements of each node
+      )::Int32
       D
     end
 #  end
