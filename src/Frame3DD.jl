@@ -255,7 +255,7 @@ f3ddmain = dlsym(f3ddlib, :simulate)
 
 #dlclose(f3ddlib)
 
-const f3ddlibpath=joinpath(dirname(abspath(@__DIR__)), "bin", "Frame3DDLib")
+const f3ddlibpath = joinpath(dirname(abspath(@__DIR__)), "bin", "Frame3DDLib")
 ##########################################
 backend_truss_analysis(be::FR3DD, load::Vec, self_weight::Bool) =
     let nodes = process_nodes(be.truss_nodes, load),
