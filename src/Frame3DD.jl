@@ -118,7 +118,7 @@ backend_get_family_ref(b::FR3DD, f::TrussBarFamily, tbf::Frame3DDTrussBarFamily)
   end
 
 #
-backend_delete_all_shapes(b::FR3DD) =
+KhepriBase.b_delete_all_refs(b::FR3DD) =
   begin
     empty!(b.truss_nodes)
     empty!(b.truss_bars)
@@ -257,7 +257,7 @@ f3ddmain = dlsym(f3ddlib, :simulate)
 
 const f3ddlibpath = joinpath(dirname(abspath(@__DIR__)), "bin", "Frame3DDLib")
 ##########################################
-backend_truss_analysis(be::FR3DD, load::Vec, self_weight::Bool) =
+KhepriBase.b_truss_analysis(be::FR3DD, load::Vec, self_weight::Bool) =
     let nodes = process_nodes(be.truss_nodes, load),
         bars = process_bars(be.truss_bars, nodes),
         supports = unique(filter(s -> s != false, map(n -> n.family.support, nodes))),
@@ -430,5 +430,5 @@ backend_truss_analysis(be::FR3DD, load::Vec, self_weight::Bool) =
     end
 #  end
 
-backend_node_displacement_function(b::FR3DD, results) =
+KhepriBase.b_node_displacement_function(b::FR3DD, results) =
   n -> vxyz(results[6*n.id-4:6*n.id-2]..., world_cs)
