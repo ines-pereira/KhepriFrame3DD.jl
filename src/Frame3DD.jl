@@ -26,7 +26,7 @@ void_ref(b::FR3DD) = FR3DDNativeRef(-1)
 
 const frame3dd = FR3DD()
 
-backend_name(b::FR3DD) = "Frame3DD"
+KhepriBase.backend_name(b::FR3DD) = "Frame3DD"
 
 # Frame3DD needs to merge nodes and bars
 save_shape!(b::FR3DD, s::TrussNode) = maybe_merged_node(b, s)
@@ -257,8 +257,8 @@ f3ddmain = dlsym(f3ddlib, :simulate)
 
 const f3ddlibpath = joinpath(dirname(abspath(@__DIR__)), "bin", "Frame3DDLib")
 ##########################################
-KhepriBase.b_truss_analysis(be::FR3DD, load::Vec, self_weight::Bool) =
-    let nodes = process_nodes(be.truss_nodes, load),
+KhepriBase.b_truss_analysis(be::FR3DD, load::Vec, self_weight::Bool, point_loads::Dict) =
+    let nodes = process_nodes(be.truss_nodes, load, point_loads),
         bars = process_bars(be.truss_bars, nodes),
         supports = unique(filter(s -> s != false, map(n -> n.family.support, nodes))),
         loaded_nodes = filter(!truss_node_is_supported, nodes),
@@ -340,9 +340,9 @@ KhepriBase.b_truss_analysis(be::FR3DD, load::Vec, self_weight::Bool) =
       nF = length(loaded_nodes)
       F_mech = zeros(Float64, DoF+1)
       for n in loaded_nodes
-        F_mech[6*n.id - 5 + 1] = load.x;
-        F_mech[6*n.id - 4 + 1] = load.y;
-        F_mech[6*n.id - 3 + 1] = load.z;
+        F_mech[6*n.id - 5 + 1] = n.load.x;
+        F_mech[6*n.id - 4 + 1] = n.load.y;
+        F_mech[6*n.id - 3 + 1] = n.load.z;
       end
       gX = [0f0, 0f0]
       gY = [0f0, 0f0]
