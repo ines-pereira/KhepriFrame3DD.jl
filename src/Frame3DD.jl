@@ -137,8 +137,8 @@ realize(b::FR3DD, s::Panel) =
 
 
 #new_truss_analysis(v=nothing; self_weight=false, backend=frame3dd) =
-displacements_from_frame3dd(b::FR3DD, filename, load, self_weight=false) =
-  let nodes = process_nodes(b.truss_nodes, load),
+displacements_from_frame3dd(b::FR3DD, filename, load::Vec, self_weight::Bool, point_loads::Dict) =
+    let nodes = process_nodes(be.truss_nodes, load, point_loads),
       bars = process_bars(b.truss_bars, nodes),
       supports = unique(filter(s -> s != false, map(n -> n.family.support, nodes))),
       loaded_nodes = filter(!truss_node_is_supported, nodes),
@@ -200,7 +200,7 @@ displacements_from_frame3dd(b::FR3DD, filename, load, self_weight=false) =
       println(io, "$(length(loaded_nodes))\t\t%% number of loaded nodes");
       println(io, "%% j\t\tFx\t\tFy\t\tFz\t\tMxx\t\tMyy\t\tMzz");
       for n in loaded_nodes
-        println(io, "$(n.id),\t$(load.x),\t$(load.y),\t$(load.z),\t0,\t0,\t0")
+        println(io, "$(n.id),\t$(n.load.x),\t$(n.load.y),\t$(n.load.z),\t0,\t0,\t0")
       end
       println(io, "\n");
       println(io, "0\t\t%% number of members with uniform distributed loads")
@@ -220,13 +220,13 @@ frame3dd_simulation_path() =
   mktempdir(tempdir(), prefix="Frame3DD_")
 
 #=
-backend_truss_analysis(b::FR3DD, load::Vec, self_weight::Bool) =
+b_truss_analysis(b::FR3DD, load::Vec, self_weight::Bool, point_loads::Dict) =
   # Ensure extension is FMM to force Matlab mode
   let simulation_folder = frame3dd_simulation_path(),
        input_path = joinpath(simulation_folder, "IOdata.IN"),
        output_path = joinpath(simulation_folder, "IOdata.OUT")
     @info input_path
-    displacements_from_frame3dd(b, input_path, load, self_weight)
+    displacements_from_frame3dd(b, input_path, load, self_weight, point_loads)
     #try
       withenv("FRAME3DD_OUTDIR"=>simulation_folder) do
         run(`$frame3dd_plugin -q -i $input_path -o $output_path`)
