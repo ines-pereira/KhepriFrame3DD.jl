@@ -36,7 +36,7 @@ save_shape!(b::FR3DD, s::TrussBar) = maybe_merged_bar(b, s)
 with_family_in_layer(f::Function, backend::FR3DD, family::Family) = f()
 
 # Frame3DD Families
-abstract type Frame3DDFamily <: BackendFamily{Any} end
+abstract type Frame3DDFamily <: Family end
 
 Base.@kwdef struct Frame3DDTrussBarGeometry
   Ax  # cross section area
