@@ -219,7 +219,7 @@ frame3dd_plugin = joinpath(dirname(abspath(@__DIR__)), "bin", "frame3dd.exe")
 frame3dd_simulation_path() =
   mktempdir(tempdir(), prefix="Frame3DD_")
 
-
+#=
 KhepriBase.b_truss_analysis(b::FR3DD, load::Vec, self_weight::Bool, point_loads::Dict) =
   # Ensure extension is FMM to force Matlab mode
   let simulation_folder = frame3dd_simulation_path(),
@@ -244,6 +244,7 @@ KhepriBase.b_truss_analysis(b::FR3DD, load::Vec, self_weight::Bool, point_loads:
 
 KhepriBase.b_node_displacement_function(b::FR3DD, results) =
   n -> vxyz(get(results, n.id, (0,0,0,0,0,0))[1:3]..., world_cs)
+=#
 
 #=
 using Libdl
