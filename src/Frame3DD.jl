@@ -138,7 +138,7 @@ realize(b::FR3DD, s::Panel) =
 
 #new_truss_analysis(v=nothing; self_weight=false, backend=frame3dd) =
 displacements_from_frame3dd(b::FR3DD, filename, load::Vec, self_weight::Bool, point_loads::Dict) =
-    let nodes = process_nodes(be.truss_nodes, load, point_loads),
+    let nodes = process_nodes(b.truss_nodes, load, point_loads),
       bars = process_bars(b.truss_bars, nodes),
       supports = unique(filter(s -> s != false, map(n -> n.family.support, nodes))),
       loaded_nodes = filter(!truss_node_is_supported, nodes),
@@ -219,13 +219,13 @@ frame3dd_plugin = joinpath(dirname(abspath(@__DIR__)), "bin", "frame3dd.exe")
 frame3dd_simulation_path() =
   mktempdir(tempdir(), prefix="Frame3DD_")
 
-#=
-b_truss_analysis(b::FR3DD, load::Vec, self_weight::Bool, point_loads::Dict) =
+
+KhepriBase.b_truss_analysis(b::FR3DD, load::Vec, self_weight::Bool, point_loads::Dict) =
   # Ensure extension is FMM to force Matlab mode
   let simulation_folder = frame3dd_simulation_path(),
        input_path = joinpath(simulation_folder, "IOdata.IN"),
        output_path = joinpath(simulation_folder, "IOdata.OUT")
-    @info input_path
+    #@info input_path
     displacements_from_frame3dd(b, input_path, load, self_weight, point_loads)
     #try
       withenv("FRAME3DD_OUTDIR"=>simulation_folder) do
@@ -242,10 +242,8 @@ b_truss_analysis(b::FR3DD, load::Vec, self_weight::Bool, point_loads::Dict) =
           for line in lines[idx1:idx2-1]])
   end
 
-backend_node_displacement_function(b::FR3DD, results) =
+KhepriBase.b_node_displacement_function(b::FR3DD, results) =
   n -> vxyz(get(results, n.id, (0,0,0,0,0,0))[1:3]..., world_cs)
-
-=#
 
 #=
 using Libdl
