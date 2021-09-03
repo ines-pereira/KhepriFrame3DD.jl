@@ -1,13 +1,14 @@
 export frame3dd,
        frame3DD_circular_tube_truss_bar_family
 
-Base.@kwdef struct Frame3DDBackend{K,T} <: LazyBackend{K,T}
+@kwdef struct Frame3DDBackend{K,T} <: LazyBackend{K,T}
   realized::Parameter{Bool}=Parameter(false)
   truss_nodes::Vector{<:TrussNode}=TrussNode[]
   truss_bars::Vector{<:TrussBar}=TrussBar[]
   shapes::Vector{<:Shape}=Shape[] # This contains all the rest that is not treated yet
   truss_node_data::Vector{TrussNodeData}=TrussNodeData[]
   truss_bar_data::Vector{TrussBarData}=TrussBarData[]
+  view::View=default_view()
 end
 
 abstract type FR3DDKey end
@@ -33,7 +34,8 @@ save_shape!(b::FR3DD, s::TrussNode) = maybe_merged_node(b, s)
 save_shape!(b::FR3DD, s::TrussBar) = maybe_merged_bar(b, s)
 
 # Frame3DD does not need layers
-with_family_in_layer(f::Function, backend::FR3DD, family::Family) = f()
+use_material_as_layer(b::FR3DD) = false
+#with_material_as_layer(f::Function, backend::FR3DD, material::Material) = f()
 
 # Frame3DD Families
 abstract type Frame3DDFamily <: Family end
