@@ -35,6 +35,9 @@ save_shape!(b::FR3DD, s::TrussBar) = maybe_merged_bar(b, s)
 
 # Frame3DD does not need layers
 use_material_as_layer(b::FR3DD) = false
+KhepriBase.b_current_layer(b::FR3DD) = nothing
+KhepriBase.b_current_layer(b::FR3DD, layer) = nothing
+
 #with_material_as_layer(f::Function, backend::FR3DD, material::Material) = f()
 
 # Frame3DD Families
@@ -221,7 +224,7 @@ frame3dd_plugin = joinpath(dirname(abspath(@__DIR__)), "bin", "frame3dd.exe")
 frame3dd_simulation_path() =
   mktempdir(tempdir(), prefix="Frame3DD_")
 
-#=
+# THIS IS FOR WINDOWS
 KhepriBase.b_truss_analysis(b::FR3DD, load::Vec, self_weight::Bool, point_loads::Dict) =
   # Ensure extension is FMM to force Matlab mode
   let simulation_folder = frame3dd_simulation_path(),
@@ -246,7 +249,7 @@ KhepriBase.b_truss_analysis(b::FR3DD, load::Vec, self_weight::Bool, point_loads:
 
 KhepriBase.b_node_displacement_function(b::FR3DD, results) =
   n -> vxyz(get(results, n.id, (0,0,0,0,0,0))[1:3]..., world_cs)
-=#
+
 
 #=
 using Libdl
@@ -258,6 +261,8 @@ f3ddmain = dlsym(f3ddlib, :simulate)
 
 const f3ddlibpath = joinpath(dirname(abspath(@__DIR__)), "bin", "Frame3DDLib")
 ##########################################
+#=
+THIS EXPLODES IN WINDOWS!!!
 KhepriBase.b_truss_analysis(be::FR3DD, load::Vec, self_weight::Bool, point_loads::Dict) =
     let nodes = process_nodes(be.truss_nodes, load, point_loads),
         bars = process_bars(be.truss_bars, nodes),
@@ -278,10 +283,13 @@ KhepriBase.b_truss_analysis(be::FR3DD, load::Vec, self_weight::Bool, point_loads
         q = zeros(Int32, DoF+1),
         r = zeros(Int32, DoF+1),
         sumR = 0
-        empty!(be.truss_node_data)
-        append!(be.truss_node_data, nodes)
-        empty!(be.truss_bar_data)
-        append!(be.truss_bar_data, bars)
+      nN > 0 || error("The truss has no nodes.")
+      nE > 0 || error("The truss has no bars.")
+      nR > 0 || error("The truss has no supports.")
+      empty!(be.truss_node_data)
+      append!(be.truss_node_data, nodes)
+      empty!(be.truss_bar_data)
+      append!(be.truss_bar_data, bars)
       for n in nodes
           i = n.id
           p = n.loc
@@ -433,3 +441,4 @@ KhepriBase.b_truss_analysis(be::FR3DD, load::Vec, self_weight::Bool, point_loads
 
 KhepriBase.b_node_displacement_function(b::FR3DD, results) =
   n -> vxyz(results[6*n.id-4:6*n.id-2]..., world_cs)
+=#
