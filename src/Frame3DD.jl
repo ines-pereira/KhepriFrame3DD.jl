@@ -17,8 +17,8 @@ const FR3DDIds = Vector{FR3DDId}
 const FR3DDRef = GenericRef{FR3DDKey, FR3DDId}
 const FR3DDRefs = Vector{FR3DDRef}
 const FR3DDNativeRef = NativeRef{FR3DDKey, FR3DDId}
-const FR3DDUnionRef = UnionRef{FR3DDKey, FR3DDId}
-const FR3DDSubtractionRef = SubtractionRef{FR3DDKey, FR3DDId}
+#const FR3DDUnionRef = UnionRef{FR3DDKey, FR3DDId}
+#const FR3DDSubtractionRef = SubtractionRef{FR3DDKey, FR3DDId}
 const FR3DD = Frame3DDBackend{FR3DDKey, FR3DDId}
 
 void_ref(b::FR3DD) = FR3DDNativeRef(-1)
